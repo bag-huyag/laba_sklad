@@ -1,34 +1,36 @@
 package com.company;
+
 import java.util.Random;
-public class Producer implements Runnable
-{
-    private int pr=0;
+
+public class Producer implements Runnable {
+    private int pr = 0;
     private Sklad st;
-    Producer(Sklad e)//Запуск Производителя
+
+    // Запуск Производителя
+    Producer(Sklad e)
     {
-        st=e;
-        Thread producer=new Thread(this);
+        st = e;
+        Thread producer = new Thread(this);
         producer.start();
     }
-    public void run()//Работа Производителя
+
+    // Работа Производителя
+    public void run()
     {
-        Random R=new Random();
+        Random R = new Random();
         try {
-            for (int i=0; i<9; i++)
-            {
-                if (st.proverit())
-                {pr+=1;}
-                int k=R.nextInt(st.razmer()-1)+1;
-                for (int j=0; j<k; j++)
-                {
+            for (int i = 0; i < 9; i++) {
+                if (st.proverit()) {
+                    pr += 1;
+                }
+                int k = R.nextInt(st.razmer() - 1) + 1;
+                for (int j = 0; j < k; j++) {
                     st.put(pr);
                 }
                 Thread.sleep(200);
             }
 
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
 
         }
     }

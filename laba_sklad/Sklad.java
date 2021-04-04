@@ -1,103 +1,118 @@
 package com.company;
-import java.util.concurrent.locks.ReentrantLock;
+
 import java.util.concurrent.locks.Condition;
-public class Sklad
-{
-    private static  int s=10; //Размер склада
-    private static  int[] q;      //Массив склада
-    private static int f, e; //Указатели на начало, конец склада
-    private ReentrantLock lock;
-    private Condition hasspace,hasproduct;
-    private boolean prov=true;
-    public Sklad()      //Создаём склад
+import java.util.concurrent.locks.ReentrantLock;
+
+public class Sklad {
+
+
+    private static final int sizeSklad = 10;    // Размер склада
+    private static int[] arraySklad;   // Массив склада
+    private static int firstPoint, endPoint;    // Указатели на начало, конец склада  (в java нет указателей)
+    private final ReentrantLock lock;   /// замораживает все потоки
+    private final Condition hasspace;
+    private final Condition hasproduct; /// блок/анблок потоков
+    private boolean prov = true;    // Проверка на пустоту/полноту
+
+    public Sklad()      // Создаём склад
     {
         lock = new ReentrantLock();
         hasspace = lock.newCondition();
         hasproduct = lock.newCondition();
-        q=new int [s];
-        f=0;
-        e=-1;
+        arraySklad = new int[sizeSklad];
+        firstPoint = 0;
+        endPoint = -1;
     }
-    private int next(int i)//Номер следующего элемента
-    {
-        int s;
-        s= (i+1)%q.length;
-        return (s);
+
+    // Номер следующего элемента
+    private int next(int index) {
+        return (index + 1) % arraySklad.length;
     }
-    private void tail(int element)//Добавляет элемент
-    {
-        e=next(e);
-        q[e]=element;
+
+    // Добавляет элемент
+    private void tail(int element) {
+        endPoint = next(endPoint);
+        arraySklad[endPoint] = element;
     }
-    private void print() //Вывод элементов склада
-    {
-        int i=f;
-        while(i!=next(e))
-        {
-            System.out.print(q[i]+" ");
-            i=next(i);
+
+    // Вывод элементов склада
+    private void print() {
+        int i = firstPoint;
+        while (i != next(endPoint)) {
+            System.out.print(arraySklad[i] + " ");
+            i = next(i);
         }
     }
-    private boolean  full()
-    {
-        return(next(next(e))==f);
-    } //Проверка на заполненность склада
-    private boolean empty()
-    {
-        return(next(e)==f);
-    } //Проверка на пустоту
-    public void put (int el) throws InterruptedException //Добавляем элемент на склад
-    {
+
+    // Проверка на заполненность склада
+    private boolean full() {
+        return (next(next(endPoint)) == firstPoint);
+    }
+
+    // Проверка на пустоту
+    private boolean empty() {
+        return (next(endPoint) == firstPoint);
+    }
+
+    // Добавляем элемент на склад
+    public void put(int el) throws InterruptedException {
         lock.lock();
-        try
-        {
-            while (full())
-            {
+        try {
+            while (full()) {
                 System.out.println("Sorry, the sklad is full");
                 hasspace.await();
             }
-            prov=false;
+            prov = false;
             tail(el);
-            System.out.println("Producer put a new product" + " "+el);
-            System.out.print(" On sklad "+" ");
+            System.out.println("Producer put a new product" + " " + el);
+            System.out.print(" On sklad " + " ");
             print();
             System.out.println();
             hasspace.signal();
-        }
-        finally
-        {
+        } finally {
             lock.unlock();
         }
     }
-    public int get () throws InterruptedException //Достаём элемент со склада
-    {
-        prov=true;
+
+    /**
+     * Доставка элемента со склада
+     *
+     * @return индекс элемент
+     * @throws InterruptedException
+     */
+    public int get() throws InterruptedException {
+        prov = true;
         int k;
         lock.lock();
-        try
-        {
-            while (empty())
-            {
+        try {
+            while (empty()) {
                 System.out.println("Sorry, the sklad is empty");
                 hasproduct.await();
             }
-            System.out.println("Customer get a new product "+q[f]);
-            k=q[f];
-            f=next(f);
+            System.out.println("Customer get a new product " + arraySklad[firstPoint]);
+            k = arraySklad[firstPoint];
+            firstPoint = next(firstPoint);
             System.out.print("On sklad ");
             print();
             System.out.println();
             hasproduct.signal();
-            return(k);
-        }
-        finally
-        {
+            return (k);
+        } finally {
             lock.unlock();
         }
     }
-    public int razmer()
-    {
-        return(s);
-    } //Размер склада
-    public boolean proverit () { return(prov);}//Проверка на пустоту/полноту
+
+    /*
+     * Размер склада
+     */
+    public int razmer() {
+        return (sizeSklad);
+    }
+
+    /*
+     * Проверка на пустоту/полноту
+     */
+    public boolean proverit() {
+        return (prov);
+    }
 }
