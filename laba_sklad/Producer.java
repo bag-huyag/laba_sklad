@@ -20,12 +20,13 @@ public class Producer implements Runnable {
         Random R = new Random();
         try {
             for (int i = 0; i < 9; i++) {
-                if (st.proverit()) {
-                    pr += 1;
-                }
+               
                 int k = R.nextInt(st.razmer() - 1) + 1;
                 for (int j = 0; j < k; j++) {
                     st.put(pr);
+                     if (st.proverit()) {
+                    pr += 1;
+                }
                 }
                 Thread.sleep(200);
             }
